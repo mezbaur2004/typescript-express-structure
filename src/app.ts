@@ -5,10 +5,9 @@ import rateLimit, {RateLimitRequestHandler} from "express-rate-limit";
 import helmet from "helmet";
 import hpp from "hpp";
 import cors from "cors"
-import { JSDOM } from "jsdom";
-import createDOMPurify from "dompurify";
 import cookieParser from "cookie-parser";
-import * as mongoose from "mongoose";
+import {connectDB} from "./db";
+import {sanitizeMiddleware} from "./middleware/sanitize";
 
 dotenv.config();
 const app: Application = express();
@@ -32,22 +31,8 @@ app.use(helmet({
 
 app.use(hpp());
 
-const window = new JSDOM("").window;
-const DOMPurify = createDOMPurify(window);
+app.use(sanitizeMiddleware);
 
-app.use((req: Request, _res: Response, next: NextFunction) => {
-    const sanitize = (obj: any) => {
-        if (!obj || typeof obj !== "object") return;
-        for (const key in obj) {
-            if (typeof obj[key] === "string") obj[key] = DOMPurify.sanitize(obj[key]);
-            else if (typeof obj[key] === "object") sanitize(obj[key]);
-        }
-    };
-    sanitize(req.body);
-    next();
-});
-
-//app.use(mongoSanitize());
 
 app.use(express.urlencoded({limit: '1mb', extended: true}));
 
@@ -59,18 +44,7 @@ const limiter: RateLimitRequestHandler = rateLimit({
     message: "Too many requests. Try again later"
 });
 app.use(limiter);
-let URL: string | undefined = process.env.DB;
-let option: { user: string, pass: string, autoIndex: boolean } = {user: '', pass: '', autoIndex: true}
-if (!URL) {
-    console.log("URL doesn't exist");
-} else {
-    mongoose.connect(URL, option).then((): void => {
-        console.log("MongoDB Connected");
-    }).catch((err): void => {
-        console.log("DB connection error:" + err);
-    });
 
-}
 
 
 app.use("/api", router);
