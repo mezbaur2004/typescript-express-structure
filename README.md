@@ -59,4 +59,4 @@ You can add new routes in `src/route/api.ts` — it’s super easy.
 
 ## 🧑‍💻 Author
 
-Mezbaur Rafi – [GitHub](https://github.com/mezbaur2004)
+Mezbaur Are Rafi – [GitHub](https://github.com/mezbaur2004)
